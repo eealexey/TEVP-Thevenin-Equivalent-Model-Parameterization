@@ -13,8 +13,8 @@ The workflow consists of **three main stages**:
 2. **Pulse Dataset Creation** – Generate MATLAB tables (`plsDS`) containing pulse and relaxation data using the TEVP library.
 3. **Model Parameterization** – Fit a 2RC Thevenin model in MATLAB/Simulink using the prepared pulse dataset.
 
-The repository includes an example experiment (`П1-047`) and the corresponding test program:  
-`Заявка параметризация LTO18650-150.docx`.
+The repository includes an example experiment (`P1-047`) and the corresponding test program:  
+`Request parameterization LTO18650-150`.
 
 ---
 
@@ -167,10 +167,10 @@ relax_tail = 600         % Relaxation duration after pulse in seconds
 
 ## 📂 Example Data
 
-Included folder: `П1-047`
+Included folder: ` P1-047`
 
 * NDAX files from experiment
-* Program specification: `Заявка параметризация LTO18650-150.docx`
+* Program specification: `Request parameterization LTO18650-150`
 
 ---
 
