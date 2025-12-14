@@ -19,18 +19,18 @@ def clip_data(df, step_lists, gap = 0.001):
     return  dat_list
 ########################################################################################################################
 
-input_folder = r'.\П1-047'  # Папка где лежат все эксперименты
-input_base_name = '101-1-3-П1-047' # имя основного (первого) файла результатов, без расширения (.ndax)
+input_folder = r'.\P1-047'  # The folder where all experiments are located
+input_base_name = '101-1-3-P1-047' # name of the main (first) results file, without extension (.ndax)
 input_filepath = os.path.join(input_folder, input_base_name+'.ndax')
 output_folder = os.path.join(input_folder, input_base_name+'_processed')
 gap = 0.001
 ###################################################################
-### пример создания windows для программый с циклом
-cycle_size = 3 # кол-во шагов в цикле
-N_cyc = 36 # кол-во циклов (повторов)
-cycle_start = 3 # номер шага, на котором начинается цикл
+### example of creating windows for programs with a cycle
+cycle_size = 3 # number of steps in a cycle
+N_cyc = 36 # number of cycles (repetitions)
+cycle_start = 3 # step number at which the loop begins
 cyc = np.arange(0, cycle_size, 1)
-step_lists = [[1, 2]] # первичные шаги, не входящие в цикл
+step_lists = [[1, 2]] # primary steps not included in the cycle
 for i in range(0,N_cyc):
     step_lists = step_lists + [(cycle_start + i*cycle_size + cyc).tolist()]
 
@@ -48,4 +48,5 @@ for k, dat in enumerate(dat_list):
     output_filepath = os.path.join(output_folder, f'{k:03d}.csv')
     dat.to_csv(output_filepath, index=False, sep ='\t')
 print('fin')
+
 
