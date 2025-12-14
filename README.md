@@ -1,5 +1,3 @@
-# TEVP-Thevenin-Equivalent-Model-Parameterization 
-
 # TEVP - Thevenin Equivalent Model Parameterization
 
 **TEVP** (Thevenin Equivalent Model Parameterization) is a repository for processing experimental Li-ion battery data and parameterizing Thevenin equivalent circuit models (2RC) using Python and MATLAB.  
@@ -46,31 +44,142 @@ The repository includes an example experiment (`П1-047`) and the corresponding 
 
 ---
 
+````markdown
 ## 1️⃣ Extract Data from NDAX
 
-Use the Python script `Extract_NDA2CSV.py` to convert NDAX files to CSV format.
+### Define the step lists (`step_lists`) for CSV splitting:
 
-### Steps:
+- `step_lists` is a **list of lists**.  
+- Each inner list defines which steps are combined into one CSV file.  
 
-1. Set the input folder and base filename:
-
-```python
-input_folder = r'.\П1-047'           # Folder containing NDAX files
-input_base_name = '101-1-3-П1-047'   # Base filename without extension
-```
-
-2. Define the step lists (step_lists) for CSV splitting:
-step_lists is a list of lists.
-Each inner list defines which steps are combined into one CSV file.
-Example:
+**Example:**
 
 ```python
 step_lists = [[1], [2,3], [4,5]]
-```
-This produces three CSVs:
-000.csv → step 1
-001.csv → steps 2 and 3 (merged)
-002.csv → steps 4 and 5 (merged)
-Time in each CSV starts at 0 and continues throughout the merged steps.
+````
 
+This produces three CSVs:
+
+* `000.csv` → step 1
+
+* `001.csv` → steps 2 and 3 (merged)
+
+* `002.csv` → steps 4 and 5 (merged)
+
+* **Time** in each CSV starts at 0 and continues throughout the merged steps.
+
+### Rules for step selection:
+
+* Each CSV should contain **one test pulse + subsequent relaxation** (`CC_DChg + rest`).
+* The first CSV must contain only the **rest period before the first pulse**.
+* For multiple cycles (36 pulses in the example program), `step_lists` can be generated programmatically:
+
+```python
+step_lists = [[1, 2]]  # initial steps outside the cycle
+for i in range(0, N_cyc):
+    step_lists += [(cycle_start + i*cycle_size + cyc).tolist()]
+```
+
+* Ensure only **executed pulses** are included if some cycles were skipped due to voltage limits.
+
+### Run the script:
+
+```bash
+python Extract_NDA2CSV.py
+```
+
+* Processed CSV files are saved in a folder: `<input_folder>_processed`
+
+---
+
+## 2️⃣ Create Pulse Dataset (`plsDS`)
+
+Use MATLAB script `create_plsDS.m` with the **TEVP library**.
+
+### Setup:
+
+* Ensure `create_plsDS.m` and TEVP folder (`@TEVP`) are in the **same path**, or add TEVP folder via **Set Path** in MATLAB.
+* Edit parameters in:
+
+```matlab
+%% CHANGE THESE PARAMETERS FOR YOUR EXPERIMENT
+soc_list = [...]  % SOC values at which pulses are applied
+% Other parameters as documented in the script comments
+```
+
+### Output:
+
+* MATLAB table `plsDS`:
+
+  * Each row corresponds to **one pulse**.
+  * Columns include metadata and raw data (`data` column).
+
+* Save dataset:
+
+```matlab
+save("plsDS.mat", "plsDS")
+```
+
+### Tips:
+
+* Rename files if working with multiple experiments in the same folder.
+* `create_plsDS.m` estimates initial values for `R0`, `R1`, etc., stored in `plsDS`.
+
+---
+
+## 3️⃣ Model Parameterization
+
+Use `RUN_estim.m` to fit a **2RC Thevenin model** in MATLAB/Simulink.
+
+### Setup:
+
+* Ensure Simulink model `inputModel_2RC_fit.slx` is in the **same folder** as the script.
+* Specify pulse datasets:
+
+```matlab
+file_names = {"plsDS"}  % MATLAB .mat files
+relax_tail = 600         % Relaxation duration after pulse in seconds
+```
+
+* Set **initial guesses** in:
+
+```matlab
+%% Initial guess values for the model parameters
+```
+
+### Process:
+
+* Script updates `R0, R1, C1, R2, C2` in `plsDS`.
+* Fitted results are stored in `fitres` column and saved with `model_tag`.
+* Close Simulink window: select **No** when prompted to save changes.
+
+---
+
+## 📊 Data Handling Notes
+
+* Ensure `step_lists` matches **executed pulses**; account for incomplete cycles.
+* First CSV must include **pre-pulse rest** to obtain correct baseline voltage.
+* `plsDS` combines **pulse metadata** and **time-series data** in a single table for parameterization.
+* Recommended **relaxation tail**: 600 s (adjustable if needed).
+* TEVP scripts assume a **2RC Thevenin model**; modify for other model orders if required.
+
+---
+
+## 📂 Example Data
+
+Included folder: `П1-047`
+
+* NDAX files from experiment
+* Program specification: `Заявка параметризация LTO18650-150.docx`
+
+---
+
+## 🔍 Best Practices
+
+* Verify **Python environment** before extraction.
+* Always check `step_lists` corresponds to **actual test pulses**.
+* Maintain **continuous timing across CSVs** for accurate voltage tracking.
+* Backup `plsDS` before running parameterization with multiple experiments.
+
+```
 
